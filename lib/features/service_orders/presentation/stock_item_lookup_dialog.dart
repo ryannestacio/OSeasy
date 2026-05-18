@@ -34,6 +34,13 @@ class _StockItemLookupDialogState extends State<StockItemLookupDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final contentWidth = _responsiveDialogWidth(context, 900);
+    final listHeight = _responsiveDialogHeight(
+      context,
+      360,
+      verticalMargin: 280,
+    );
+
     final categories =
         widget.stockItems
             .map((item) => item.category.trim())
@@ -61,7 +68,7 @@ class _StockItemLookupDialogState extends State<StockItemLookupDialog> {
     return AlertDialog(
       title: const Text('Buscar peca do estoque'),
       content: SizedBox(
-        width: 900,
+        width: contentWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -123,7 +130,7 @@ class _StockItemLookupDialogState extends State<StockItemLookupDialog> {
             ),
             const SizedBox(height: 8),
             SizedBox(
-              height: 360,
+              height: listHeight,
               child: filtered.isEmpty
                   ? const Center(child: Text('Nenhum item encontrado.'))
                   : ListView.separated(

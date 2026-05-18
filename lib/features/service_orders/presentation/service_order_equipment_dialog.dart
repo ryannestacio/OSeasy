@@ -58,10 +58,12 @@ class _ServiceOrderEquipmentDialogState
 
   @override
   Widget build(BuildContext context) {
+    final contentWidth = _responsiveDialogWidth(context, 640);
+
     return AlertDialog(
       title: const Text('Novo equipamento'),
       content: SizedBox(
-        width: 640,
+        width: contentWidth,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(

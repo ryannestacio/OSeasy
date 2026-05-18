@@ -551,52 +551,65 @@ extension _ServiceOrdersPageActions on _ServiceOrdersPageState {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        child: SizedBox(
-          width: 1100,
-          height: 760,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 10, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    if (allowSave)
-                      OutlinedButton.icon(
-                        onPressed: () =>
-                            _savePdfBytes(bytes, suggestedName: suggestedName),
-                        icon: const Icon(Icons.save_alt_rounded),
-                        label: const Text('Salvar PDF'),
-                      ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Fechar'),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: PdfPreview(
-                  build: (_) async => bytes,
-                  canChangePageFormat: false,
-                  canChangeOrientation: false,
-                  canDebug: false,
-                  allowSharing: false,
-                  allowPrinting: true,
-                ),
-              ),
-            ],
+      builder: (context) {
+        final dialogSize = _responsivePreviewDialogSize(
+          context,
+          preferredWidth: 1100,
+          preferredHeight: 760,
+        );
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 24,
           ),
-        ),
-      ),
+          child: SizedBox(
+            width: dialogSize.width,
+            height: dialogSize.height,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 10, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      if (allowSave)
+                        OutlinedButton.icon(
+                          onPressed: () => _savePdfBytes(
+                            bytes,
+                            suggestedName: suggestedName,
+                          ),
+                          icon: const Icon(Icons.save_alt_rounded),
+                          label: const Text('Salvar PDF'),
+                        ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Fechar'),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: PdfPreview(
+                    build: (_) async => bytes,
+                    canChangePageFormat: false,
+                    canChangeOrientation: false,
+                    canDebug: false,
+                    allowSharing: false,
+                    allowPrinting: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -664,36 +677,47 @@ extension _ServiceOrdersPageActions on _ServiceOrdersPageState {
         }
         await showDialog<void>(
           context: context,
-          builder: (context) => Dialog(
-            child: SizedBox(
-              width: 980,
-              height: 700,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 8, 8),
-                    child: Row(
-                      children: [
-                        Expanded(child: Text(attachment.fileName)),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Fechar'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: InteractiveViewer(
-                      minScale: 0.4,
-                      maxScale: 6,
-                      child: Center(child: Image.file(file)),
-                    ),
-                  ),
-                ],
+          builder: (context) {
+            final dialogSize = _responsivePreviewDialogSize(
+              context,
+              preferredWidth: 980,
+              preferredHeight: 700,
+            );
+            return Dialog(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 24,
               ),
-            ),
-          ),
+              child: SizedBox(
+                width: dialogSize.width,
+                height: dialogSize.height,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 10, 8, 8),
+                      child: Row(
+                        children: [
+                          Expanded(child: Text(attachment.fileName)),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Fechar'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: InteractiveViewer(
+                        minScale: 0.4,
+                        maxScale: 6,
+                        child: Center(child: Image.file(file)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
         return;
       }
@@ -705,20 +729,29 @@ extension _ServiceOrdersPageActions on _ServiceOrdersPageState {
         }
         await showDialog<void>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text(attachment.fileName),
-            content: SizedBox(
-              width: 900,
-              height: 560,
-              child: SingleChildScrollView(child: Text(content)),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Fechar'),
+          builder: (context) {
+            final dialogSize = _responsivePreviewDialogSize(
+              context,
+              preferredWidth: 900,
+              preferredHeight: 560,
+              horizontalMargin: 80,
+              verticalMargin: 120,
+            );
+            return AlertDialog(
+              title: Text(attachment.fileName),
+              content: SizedBox(
+                width: dialogSize.width,
+                height: dialogSize.height,
+                child: SingleChildScrollView(child: Text(content)),
               ),
-            ],
-          ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Fechar'),
+                ),
+              ],
+            );
+          },
         );
         return;
       }
@@ -736,5 +769,24 @@ extension _ServiceOrdersPageActions on _ServiceOrdersPageState {
         error: true,
       );
     }
+  }
+
+  Size _responsivePreviewDialogSize(
+    BuildContext context, {
+    required double preferredWidth,
+    required double preferredHeight,
+    double horizontalMargin = 48,
+    double verticalMargin = 48,
+  }) {
+    final screenSize = MediaQuery.sizeOf(context);
+    final availableWidth = screenSize.width - horizontalMargin;
+    final availableHeight = screenSize.height - verticalMargin;
+    final width = availableWidth > 0
+        ? min(preferredWidth, availableWidth)
+        : preferredWidth;
+    final height = availableHeight > 0
+        ? min(preferredHeight, availableHeight)
+        : preferredHeight;
+    return Size(width, height);
   }
 }

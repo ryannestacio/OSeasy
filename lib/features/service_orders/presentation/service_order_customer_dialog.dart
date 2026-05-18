@@ -93,6 +93,17 @@ class _ServiceOrderCustomerDialogState
 
   @override
   Widget build(BuildContext context) {
+    final dialogWidth = _responsiveDialogWidth(
+      context,
+      920,
+      horizontalMargin: 48,
+    );
+    final dialogHeight = _responsiveDialogHeight(
+      context,
+      650,
+      verticalMargin: 40,
+    );
+
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       shape: RoundedRectangleBorder(
@@ -100,8 +111,8 @@ class _ServiceOrderCustomerDialogState
         side: BorderSide(color: Colors.green.shade700),
       ),
       child: SizedBox(
-        width: 920,
-        height: 650,
+        width: dialogWidth,
+        height: dialogHeight,
         child: DecoratedBox(
           decoration: const BoxDecoration(color: Color(0xFFE3E4D2)),
           child: Column(
@@ -112,6 +123,7 @@ class _ServiceOrderCustomerDialogState
                   padding: const EdgeInsets.all(8),
                   child: Form(
                     key: _formKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
@@ -207,6 +219,11 @@ class _ServiceOrderCustomerDialogState
             child: _input(
               controller: _birthdayController,
               hintText: 'dd/mm/aaaa',
+              validator: _birthdayValidator,
+              keyboardType: TextInputType.datetime,
+              inputFormatters: const [
+                _PatternMaskTextInputFormatter('##/##/####'),
+              ],
             ),
           ),
         ),
@@ -222,7 +239,12 @@ class _ServiceOrderCustomerDialogState
           flex: 3,
           child: _fieldBlock(
             label: 'CNPJ/CPF',
-            child: _input(controller: _documentController),
+            child: _input(
+              controller: _documentController,
+              validator: _documentValidator,
+              keyboardType: TextInputType.number,
+              inputFormatters: const [_CpfCnpjTextInputFormatter()],
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -266,7 +288,14 @@ class _ServiceOrderCustomerDialogState
               flex: 2,
               child: _fieldBlock(
                 label: 'CEP',
-                child: _input(controller: _zipCodeController),
+                child: _input(
+                  controller: _zipCodeController,
+                  validator: _zipCodeValidator,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: const [
+                    _PatternMaskTextInputFormatter('#####-###'),
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -319,7 +348,14 @@ class _ServiceOrderCustomerDialogState
               flex: 1,
               child: _fieldBlock(
                 label: 'UF',
-                child: _input(controller: _stateCodeController),
+                child: _input(
+                  controller: _stateCodeController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp('[a-zA-Z]')),
+                    LengthLimitingTextInputFormatter(2),
+                  ],
+                  textCapitalization: TextCapitalization.characters,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -371,14 +407,22 @@ class _ServiceOrderCustomerDialogState
         Expanded(
           child: _fieldBlock(
             label: 'Email',
-            child: _input(controller: _emailController),
+            child: _input(
+              controller: _emailController,
+              validator: _emailValidator,
+              keyboardType: TextInputType.emailAddress,
+            ),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _fieldBlock(
             label: 'Email para notas fiscais',
-            child: _input(controller: _fiscalEmailController),
+            child: _input(
+              controller: _fiscalEmailController,
+              validator: _emailValidator,
+              keyboardType: TextInputType.emailAddress,
+            ),
           ),
         ),
       ],
@@ -487,11 +531,17 @@ class _ServiceOrderCustomerDialogState
     String? Function(String?)? validator,
     String? hintText,
     bool autofocus = false,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    TextCapitalization textCapitalization = TextCapitalization.none,
   }) {
     return TextFormField(
       controller: controller,
       validator: validator,
       autofocus: autofocus,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      textCapitalization: textCapitalization,
       style: const TextStyle(fontSize: 14),
       decoration: _inputDecoration(hintText: hintText),
     );
@@ -622,5 +672,201 @@ class _ServiceOrderCustomerDialogState
       return 'Campo obrigatorio';
     }
     return null;
+  }
+
+  String? _birthdayValidator(String? value) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    if (!RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(trimmed)) {
+      return 'Data invalida';
+    }
+
+    final parts = trimmed.split('/');
+    final day = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+    if (day == null || month == null || year == null) {
+      return 'Data invalida';
+    }
+
+    final date = DateTime(year, month, day);
+    if (date.year != year || date.month != month || date.day != day) {
+      return 'Data invalida';
+    }
+
+    if (year < 1900) {
+      return 'Data invalida';
+    }
+
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    if (date.isAfter(todayDate)) {
+      return 'Data invalida';
+    }
+
+    return null;
+  }
+
+  String? _documentValidator(String? value) {
+    final digits = _onlyDigits(value);
+    if (digits.isEmpty) {
+      return null;
+    }
+
+    if (digits.length == 11 && _isValidCpf(digits)) {
+      return null;
+    }
+
+    if (digits.length == 14 && _isValidCnpj(digits)) {
+      return null;
+    }
+
+    return 'CPF/CNPJ invalido';
+  }
+
+  String? _zipCodeValidator(String? value) {
+    final digits = _onlyDigits(value);
+    if (digits.isEmpty) {
+      return null;
+    }
+
+    if (digits.length != 8) {
+      return 'CEP invalido';
+    }
+
+    return null;
+  }
+
+  String? _emailValidator(String? value) {
+    final email = value?.trim() ?? '';
+    if (email.isEmpty) {
+      return null;
+    }
+
+    final emailPattern = RegExp(
+      r"^[A-Za-z0-9._%+\-']+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$",
+    );
+    if (!emailPattern.hasMatch(email)) {
+      return 'Email invalido';
+    }
+    return null;
+  }
+
+  String _onlyDigits(String? value) {
+    return (value ?? '').replaceAll(RegExp(r'\D'), '');
+  }
+
+  bool _isValidCpf(String digits) {
+    if (digits.length != 11 || RegExp(r'^(\d)\1{10}$').hasMatch(digits)) {
+      return false;
+    }
+
+    final numbers = digits.split('').map(int.parse).toList();
+    final firstDigit = _calculateMod11Digit(numbers, 9, 10);
+    final secondDigit = _calculateMod11Digit(numbers, 10, 11);
+    return numbers[9] == firstDigit && numbers[10] == secondDigit;
+  }
+
+  bool _isValidCnpj(String digits) {
+    if (digits.length != 14 || RegExp(r'^(\d)\1{13}$').hasMatch(digits)) {
+      return false;
+    }
+
+    final numbers = digits.split('').map(int.parse).toList();
+    const firstWeights = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const secondWeights = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+    final firstDigit = _calculateWeightedDigit(numbers, firstWeights);
+    final secondDigit = _calculateWeightedDigit(numbers, secondWeights);
+
+    return numbers[12] == firstDigit && numbers[13] == secondDigit;
+  }
+
+  int _calculateMod11Digit(List<int> numbers, int size, int weightStart) {
+    var sum = 0;
+    for (var index = 0; index < size; index++) {
+      sum += numbers[index] * (weightStart - index);
+    }
+
+    final remainder = sum % 11;
+    return remainder < 2 ? 0 : 11 - remainder;
+  }
+
+  int _calculateWeightedDigit(List<int> numbers, List<int> weights) {
+    var sum = 0;
+    for (var index = 0; index < weights.length; index++) {
+      sum += numbers[index] * weights[index];
+    }
+    final remainder = sum % 11;
+    return remainder < 2 ? 0 : 11 - remainder;
+  }
+}
+
+class _PatternMaskTextInputFormatter extends TextInputFormatter {
+  const _PatternMaskTextInputFormatter(this.pattern);
+
+  final String pattern;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final maxDigits = pattern.replaceAll(RegExp(r'[^#]'), '').length;
+    final clipped = digits.length > maxDigits
+        ? digits.substring(0, maxDigits)
+        : digits;
+
+    final masked = _applyMask(clipped, pattern);
+    return TextEditingValue(
+      text: masked,
+      selection: TextSelection.collapsed(offset: masked.length),
+    );
+  }
+
+  static String _applyMask(String digits, String maskPattern) {
+    final buffer = StringBuffer();
+    var digitIndex = 0;
+
+    for (final char in maskPattern.split('')) {
+      if (digitIndex >= digits.length) {
+        break;
+      }
+
+      if (char == '#') {
+        buffer.write(digits[digitIndex]);
+        digitIndex++;
+      } else {
+        buffer.write(char);
+      }
+    }
+
+    return buffer.toString();
+  }
+}
+
+class _CpfCnpjTextInputFormatter extends TextInputFormatter {
+  const _CpfCnpjTextInputFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final clipped = digits.length > 14 ? digits.substring(0, 14) : digits;
+    final pattern = clipped.length <= 11
+        ? '###.###.###-##'
+        : '##.###.###/####-##';
+    final masked = _PatternMaskTextInputFormatter._applyMask(clipped, pattern);
+
+    return TextEditingValue(
+      text: masked,
+      selection: TextSelection.collapsed(offset: masked.length),
+    );
   }
 }

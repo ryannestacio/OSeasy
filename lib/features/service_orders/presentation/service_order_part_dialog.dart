@@ -50,10 +50,12 @@ class _ServicePartDialogState extends State<ServicePartDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final contentWidth = _responsiveDialogWidth(context, 640);
+
     return AlertDialog(
       title: Text(widget.initialLine == null ? 'Nova peca' : 'Editar peca'),
       content: SizedBox(
-        width: 640,
+        width: contentWidth,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(

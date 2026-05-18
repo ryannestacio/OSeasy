@@ -57,12 +57,14 @@ class _ServiceLineDialogState extends State<ServiceLineDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final contentWidth = _responsiveDialogWidth(context, 640);
+
     return AlertDialog(
       title: Text(
         widget.initialLine == null ? 'Novo servico' : 'Editar servico',
       ),
       content: SizedBox(
-        width: 640,
+        width: contentWidth,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(

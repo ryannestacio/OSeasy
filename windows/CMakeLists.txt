@@ -72,6 +72,19 @@ endif()
 set(INSTALL_BUNDLE_DATA_DIR "${CMAKE_INSTALL_PREFIX}/data")
 set(INSTALL_BUNDLE_LIB_DIR "${CMAKE_INSTALL_PREFIX}")
 
+# Native assets can include DLLs (for example sqlite3.dll). If an old
+# debug instance is still running, Windows locks the DLL and install fails
+# with "Permission denied". Stop stale app processes before copying runtime
+# files so local rebuilds are deterministic.
+install(CODE "
+  execute_process(
+    COMMAND taskkill /F /T /IM ${BINARY_NAME}.exe
+    RESULT_VARIABLE _taskkill_result
+    OUTPUT_QUIET
+    ERROR_QUIET
+  )
+" COMPONENT Runtime)
+
 install(TARGETS ${BINARY_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
   COMPONENT Runtime)
 

@@ -27,10 +27,12 @@ class _ServiceOrderTechnicianDialogState
 
   @override
   Widget build(BuildContext context) {
+    final contentWidth = _responsiveDialogWidth(context, 420);
+
     return AlertDialog(
       title: const Text('Novo tecnico'),
       content: SizedBox(
-        width: 420,
+        width: contentWidth,
         child: Form(
           key: _formKey,
           child: TextFormField(

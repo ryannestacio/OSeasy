@@ -47,6 +47,16 @@ class _ServiceOrderCustomerLookupDialogState
 
   @override
   Widget build(BuildContext context) {
+    final dialogWidth = _responsiveDialogWidth(
+      context,
+      900,
+      horizontalMargin: 88,
+    );
+    final dialogHeight = _responsiveDialogHeight(
+      context,
+      560,
+      verticalMargin: 48,
+    );
     final filteredCustomers = _buildFilteredCustomers();
 
     return Dialog(
@@ -56,8 +66,8 @@ class _ServiceOrderCustomerLookupDialogState
         side: BorderSide(color: Colors.grey.shade500),
       ),
       child: SizedBox(
-        width: 900,
-        height: 560,
+        width: dialogWidth,
+        height: dialogHeight,
         child: Column(
           children: [
             _buildWindowHeader(),
@@ -115,108 +125,117 @@ class _ServiceOrderCustomerLookupDialogState
   }
 
   Widget _buildTopSearchSection() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 10,
-          child: Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compactLayout = constraints.maxWidth < 760;
+        if (compactLayout) {
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Digite abaixo o nome ou parte do nome do cliente a ser localizado:',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                '(F2=Novo cliente)',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.red,
+              _buildQuerySection(),
+              const SizedBox(height: 8),
+              _buildSearchModeSection(),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 10, child: _buildQuerySection()),
+            const SizedBox(width: 8),
+            Expanded(flex: 7, child: _buildSearchModeSection()),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildQuerySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Digite abaixo o nome ou parte do nome do cliente a ser localizado:',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 2),
+        const Text(
+          '(F2=Novo cliente)',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: Colors.red,
+          ),
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 36,
+          child: TextField(
+            controller: _queryController,
+            autofocus: true,
+            style: const TextStyle(fontSize: 16),
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              border: OutlineInputBorder(),
+            ),
+            onSubmitted: (_) => _applySearch(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchModeSection() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade600),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Forma de busca',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _searchModeOption(
+                      _CustomerSearchMode.startsWithName,
+                      'Inicio do nome',
+                    ),
+                    _searchModeOption(
+                      _CustomerSearchMode.containsName,
+                      'Qualquer parte do nome',
+                    ),
+                    _searchModeOption(
+                      _CustomerSearchMode.endsWithName,
+                      'Fim do nome/Sobrenome',
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              SizedBox(
-                height: 36,
-                child: TextField(
-                  controller: _queryController,
-                  autofocus: true,
-                  style: const TextStyle(fontSize: 16),
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
-                    border: OutlineInputBorder(),
-                  ),
-                  onSubmitted: (_) => _applySearch(),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _searchModeOption(_CustomerSearchMode.phone, 'Telefone'),
+                    _searchModeOption(_CustomerSearchMode.document, 'CNPJ/CPF'),
+                  ],
                 ),
               ),
             ],
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 7,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade600),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Forma de busca',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _searchModeOption(
-                            _CustomerSearchMode.startsWithName,
-                            'Inicio do nome',
-                          ),
-                          _searchModeOption(
-                            _CustomerSearchMode.containsName,
-                            'Qualquer parte do nome',
-                          ),
-                          _searchModeOption(
-                            _CustomerSearchMode.endsWithName,
-                            'Fim do nome/Sobrenome',
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _searchModeOption(
-                            _CustomerSearchMode.phone,
-                            'Telefone',
-                          ),
-                          _searchModeOption(
-                            _CustomerSearchMode.document,
-                            'CNPJ/CPF',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -360,49 +379,70 @@ class _ServiceOrderCustomerLookupDialogState
   }
 
   Widget _buildBottomActions() {
-    return Row(
-      children: [
-        TextButton.icon(
-          onPressed: () {
-            Navigator.of(
-              context,
-            ).pop(CustomerLookupDialogAction.requestNewCustomer);
-          },
-          icon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
-          label: const Text(
-            'Novo cliente',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-        ),
-        const Spacer(),
-        OutlinedButton(
-          onPressed: _applySearch,
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(92, 38),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          child: const Text(
-            'Listar',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-          ),
-        ),
-        const SizedBox(width: 8),
-        OutlinedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(100, 38),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          child: const Text(
-            'Cancelar',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
+    final newCustomerAction = TextButton.icon(
+      onPressed: () {
+        Navigator.of(
+          context,
+        ).pop(CustomerLookupDialogAction.requestNewCustomer);
+      },
+      icon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
+      label: const Text(
+        'Novo cliente',
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+    );
+
+    final listButton = OutlinedButton(
+      onPressed: _applySearch,
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(92, 38),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+      ),
+      child: const Text(
+        'Listar',
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+      ),
+    );
+
+    final cancelButton = OutlinedButton(
+      onPressed: () => Navigator.of(context).pop(),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(100, 38),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+      ),
+      child: const Text(
+        'Cancelar',
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compactLayout = constraints.maxWidth < 560;
+        if (compactLayout) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              newCustomerAction,
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [listButton, const SizedBox(width: 8), cancelButton],
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            newCustomerAction,
+            const Spacer(),
+            listButton,
+            const SizedBox(width: 8),
+            cancelButton,
+          ],
+        );
+      },
     );
   }
 
